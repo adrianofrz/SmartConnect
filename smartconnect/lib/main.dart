@@ -59,6 +59,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _getScannedResults(BuildContext context) async {
     WifiManager wifi = WifiManager(context);
+    wifi.checkWifi();
     final results = await wifi.getScannedResults();
     setState(() => accessPoints = results!);
 
