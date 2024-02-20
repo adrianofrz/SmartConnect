@@ -10,9 +10,9 @@ class WifiManager {
   StreamSubscription<List<WiFiAccessPoint>>? subscription;
   bool shouldCheckCan = true;
   // ignore: recursive_getters
-  BuildContext get context => context;
+  //BuildContext get context => context;
 
-  WifiManager(BuildContext context);
+  WifiManager(/*BuildContext context*/);
   bool get isStreaming => subscription != null;
 
   Future<bool> _canGetScannedResults() async {
@@ -31,10 +31,16 @@ class WifiManager {
 
   // ignore: unused_element
   Future<List<WiFiAccessPoint>?> getScannedResults() async {
+    List<WiFiAccessPoint> listaRedes = [];
     if (await _canGetScannedResults()) {
       // get scanned results
       final results = await WiFiScan.instance.getScannedResults();
-      return results;
+
+      for (WiFiAccessPoint rede in results) {
+        if (await WiFiForIoTPlugin.isRegisteredWifiNetwork(rede.ssid))
+          listaRedes.add(rede);
+      }
+      return listaRedes.toList();
       // ignore: use_build_context_synchronously
       //context.setState(() => accessPoints = results);
     }
@@ -44,29 +50,45 @@ class WifiManager {
   void checkWifi() async {
     // Verifica se o Wi-Fi está ativo
     bool isWifiEnabled = await WiFiForIoTPlugin.isEnabled();
+    int? frequency = 0;
+    //WifiManager wifi = WifiManager(null);
+    //final results = wifi.getScannedResults();
+
     if (!isWifiEnabled) {
       // Wi-Fi não está ativo. Retorne ou exiba uma mensagem para o usuário.
       return;
     }
 
     //// Obtém informações da rede Wi-Fi conectada
-    String? connectionInfo = await WiFiForIoTPlugin.getWiFiAPPreSharedKey();
-//
-    //// Verifica se a rede conectada é de 2.4 GHz
-    //bool is24ghz = connectionInfo.frequency == 2400;
-    //if (!is24ghz) {
-    //  // Dispositivo conectado a uma rede de 5 GHz. Retorne ou exiba uma mensagem para o usuário.
-    //  return;
-    //}
-//
+    //String? connectionInfo = await WiFiForIoTPlugin.getWiFiAPPreSharedKey();
+
+    // Verifica se a rede conectada é de 2.4 GHz
+    frequency = await WiFiForIoTPlugin.getFrequency();
+    if (frequency! > 5000) {
+      // Dispositivo conectado a uma rede de 5 GHz. Retorne ou exiba uma mensagem para o usuário.
+      return;
+    }
     //// Lista as redes Wi-Fi disponíveis
-    //List<WifiScanResult> scanResults = await WiFiScan.getWifiList();
-//
+    //List<WiFiAccessPoint> scanNets = [];
+    List<WiFiAccessPoint>? scanNets = await getScannedResults();
+
     //// Filtra as redes de 5 GHz com rssi maior ou igual a -70
     //List<WifiScanResult> ghz5Networks = scanResults
     //    .where((result) => result.frequency == 5000 && result.level >= -70)
     //    .toList();
-//
+
+    //List<WiFiAccessPoint> ghz5Networks = [];
+    for (WiFiAccessPoint redes in scanNets!) {
+      if (redes.frequency < 5000 && redes.level >= -70) {
+        WiFiForIoTPlugin.connect(redes.ssid,
+            bssid: redes.bssid,
+            //password: STA_DEFAULT_PASSWORD,
+            joinOnce: true,
+            security: NetworkSecurity.WPA);
+        break;
+      }
+    }
+
     //// Se encontrar uma rede de 5 GHz, conecta-se a ela
     //if (ghz5Networks.isNotEmpty) {
     //  WifiScanResult targetNetwork = ghz5Networks.first;

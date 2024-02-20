@@ -279,6 +279,8 @@ class _FlutterWifiIoTState extends State<FlutterWifiIoT> {
 
   List<Widget> getButtonWidgetsForAndroid() {
     final List<Widget> htPrimaryWidgets = <Widget>[];
+    //WifiManager wifi = WifiManager();
+    //wifi.checkWifi();
 
     WiFiForIoTPlugin.isEnabled().then((val) {
       setState(() {
@@ -290,14 +292,15 @@ class _FlutterWifiIoTState extends State<FlutterWifiIoT> {
       htPrimaryWidgets.addAll([
         SizedBox(height: 10),
         Text("Wifi Enabled"),
-        /*MaterialButton(
+        MaterialButton(
           color: Colors.blue,
-          child: Text("Disable", style: textStyle),
+          child: Text("Muda Rede", style: textStyle),
           onPressed: () {
-            WiFiForIoTPlugin.setEnabled(false,
-                shouldOpenSettings: _isWifiDisableOpenSettings);
+            trocaRede();
+            //WiFiForIoTPlugin.setEnabled(false,
+            //    shouldOpenSettings: _isWifiDisableOpenSettings);
           },
-        ),*/
+        ),
       ]);
 
       WiFiForIoTPlugin.isConnected().then((val) {
@@ -695,6 +698,11 @@ class _FlutterWifiIoTState extends State<FlutterWifiIoT> {
         body: getWidgets(),
       ),
     );
+  }
+
+  void trocaRede() {
+    WifiManager wifi = WifiManager();
+    wifi.checkWifi();
   }
 }
 
