@@ -87,7 +87,7 @@ class WifiManager {
           //await WiFiForIoTPlugin.disconnect();
           await WiFiForIoTPlugin.connect(redes.ssid,
                   bssid: redes.bssid,
-                  password: STA_DEFAULT_PASSWORD, //"unless,likely,boaster",
+                  password: STA_DEFAULT_PASSWORD,
                   joinOnce: true,
                   security: NetworkSecurity.WPA,
                   withInternet: true)
