@@ -36,9 +36,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   wifi_iot: ^0.3.19
+  wifi_scan: ^0.4.1
   permission_handler: ^11.3.0
   baseflow_plugin_template: ^2.1.2
-  wifi_scan: ^0.4.1
 
 dev_dependencies:
   flutter_test:

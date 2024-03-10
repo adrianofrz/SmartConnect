@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:smartconnect/main.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:flutter/services.dart';
 import 'package:wifi_scan/wifi_scan.dart';
@@ -37,8 +40,10 @@ class WifiManager {
       final results = await WiFiScan.instance.getScannedResults();
 
       for (WiFiAccessPoint rede in results) {
-        if (await WiFiForIoTPlugin.isRegisteredWifiNetwork(rede.ssid))
+        //if (await WiFiForIoTPlugin.isRegisteredWifiNetwork(rede.ssid)) {
+        if (await WiFiForIoTPlugin.getSSID() == rede.ssid) {
           listaRedes.add(rede);
+        }
       }
       return listaRedes.toList();
       // ignore: use_build_context_synchronously
@@ -55,7 +60,7 @@ class WifiManager {
     //final results = wifi.getScannedResults();
 
     if (!isWifiEnabled) {
-      // Wi-Fi não está ativo. Retorne ou exiba uma mensagem para o usuário.
+      // Wi-Fi não está ativo.
       return;
     }
 
@@ -72,29 +77,31 @@ class WifiManager {
     //List<WiFiAccessPoint> scanNets = [];
     List<WiFiAccessPoint>? scanNets = await getScannedResults();
 
-    //// Filtra as redes de 5 GHz com rssi maior ou igual a -70
-    //List<WifiScanResult> ghz5Networks = scanResults
-    //    .where((result) => result.frequency == 5000 && result.level >= -70)
-    //    .toList();
-
-    //List<WiFiAccessPoint> ghz5Networks = [];
-    for (WiFiAccessPoint redes in scanNets!) {
-      if (redes.frequency < 5000 && redes.level >= -70) {
-        WiFiForIoTPlugin.connect(redes.ssid,
-            bssid: redes.bssid,
-            //password: STA_DEFAULT_PASSWORD,
-            joinOnce: true,
-            security: NetworkSecurity.WPA);
-        break;
+    // Filtra as redes de 5 GHz com rssi maior ou igual a -70
+    try {
+      //List<WiFiAccessPoint> ghz5Networks = [];
+      for (WiFiAccessPoint redes in scanNets!) {
+        if (redes.frequency > 5000 && redes.level >= -70) {
+          WiFiForIoTPlugin.showWritePermissionSettings(false);
+          await Permission.location.request();
+          //await WiFiForIoTPlugin.disconnect();
+          await WiFiForIoTPlugin.connect(redes.ssid,
+                  bssid: redes.bssid,
+                  password: STA_DEFAULT_PASSWORD, //"unless,likely,boaster",
+                  joinOnce: true,
+                  security: NetworkSecurity.WPA,
+                  withInternet: true)
+              .then((result) => log(
+                  "##########################conectou###############################"));
+          break;
+        }
       }
     }
-
-    //// Se encontrar uma rede de 5 GHz, conecta-se a ela
-    //if (ghz5Networks.isNotEmpty) {
-    //  WifiScanResult targetNetwork = ghz5Networks.first;
-    //  await WifiIot.connect(targetNetwork.ssid, targetNetwork.password);
-    //} else {
-    //  // Nenhuma rede de 5 GHz disponível com rssi >= -70. Retorne ou exiba uma mensagem para o usuário.
-    //}
+    // ignore: non_constant_identifier_names
+    catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
   }
 }
